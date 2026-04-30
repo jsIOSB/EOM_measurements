@@ -143,7 +143,7 @@
 
             <div class="filename-display" id="filename"></div>
 
-            <a class="download-btn" href="all_measurements.zip" download>
+            <a class="download-btn" href="all.zip" download>
                 ⬇ Download All (.zip)
             </a>
         </div>
@@ -154,6 +154,8 @@
     </div>
 
     <script>
+        const basePath = "EOM_eval";
+
         const files = {
             frequency_sweep: {
                 "0V0_gain_voltage": [
@@ -214,9 +216,9 @@
 
             let path;
             if (category === 'frequency_sweep') {
-                path = `frequency_sweep/${gain}/${file}`;
+                path = `${basePath}/frequency_sweep/${gain}/${file}`;
             } else {
-                path = `input_voltage_sweep/${file}`;
+                path = `${basePath}/input_voltage_sweep/${file}`;
             }
 
             preview.src = path;
