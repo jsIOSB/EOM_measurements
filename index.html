@@ -19,12 +19,6 @@
             padding: 20px;
         }
 
-        h1 {
-            text-align: center;
-            margin-bottom: 20px;
-            color: #00d4ff;
-        }
-
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -38,7 +32,7 @@
             display: flex;
             flex-wrap: wrap;
             gap: 20px;
-            align-items: flex-start;
+            align-items: center;
         }
 
         .control-group {
@@ -61,7 +55,7 @@
             border-radius: 6px;
             font-size: 14px;
             cursor: pointer;
-            min-width: 200px;
+            min-width: 150px;
         }
 
         select:hover {
@@ -71,6 +65,36 @@
         select:focus {
             outline: none;
             box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.3);
+        }
+
+        .filename-display {
+            flex: 1;
+            padding: 10px 20px;
+            background: #0f3460;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 14px;
+            color: #fff;
+            min-width: 200px;
+        }
+
+        .download-btn {
+            background: #00d4ff;
+            color: #1a1a2e;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .download-btn:hover {
+            background: #00b8e6;
         }
 
         .image-container {
@@ -87,43 +111,25 @@
 
         .image-container img {
             max-width: 100%;
-            max-height: 70vh;
+            max-height: 75vh;
             border-radius: 8px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-        }
-
-        .current-path {
-            margin-top: 15px;
-            padding: 10px 20px;
-            background: #0f3460;
-            border-radius: 6px;
-            font-family: monospace;
-            font-size: 13px;
-            color: #aaa;
-            word-break: break-all;
-        }
-
-        .placeholder {
-            color: #666;
-            font-size: 18px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>📊 Measurement Image Viewer</h1>
-        
         <div class="controls">
             <div class="control-group">
-                <label for="category">Category</label>
+                <label for="category">Sweep</label>
                 <select id="category">
-                    <option value="frequency_sweep">Frequency Sweep</option>
-                    <option value="input_voltage_sweep">Input Voltage Sweep</option>
+                    <option value="frequency_sweep">Frequency</option>
+                    <option value="input_voltage_sweep">Input Voltage</option>
                 </select>
             </div>
 
             <div class="control-group" id="gain-group">
-                <label for="gain">Gain Voltage</label>
+                <label for="gain">Gain</label>
                 <select id="gain">
                     <option value="0V0_gain_voltage">0V0</option>
                     <option value="1V5_gain_voltage">1V5</option>
@@ -131,14 +137,19 @@
             </div>
 
             <div class="control-group">
-                <label for="file">File</label>
+                <label for="file" id="file-label">Frequency</label>
                 <select id="file"></select>
             </div>
+
+            <div class="filename-display" id="filename"></div>
+
+            <a class="download-btn" href="all_measurements.zip" download>
+                ⬇ Download All (.zip)
+            </a>
         </div>
 
         <div class="image-container">
             <img id="preview" src="" alt="Selected image">
-            <div class="current-path" id="path"></div>
         </div>
     </div>
 
@@ -146,28 +157,28 @@
         const files = {
             frequency_sweep: {
                 "0V0_gain_voltage": [
-                    "SINE-10MHz-300mV-0V0.png",
-                    "SINE-20MHz-300mV-0V0.png",
-                    "SINE-40MHz-300mV-0V0.png",
-                    "SINE-80MHz-300mV-0V0.png",
-                    "SINE-160MHz-300mV-0V0.png",
-                    "SINE-1GHz-300mV-0V0.png"
+                    { label: "10MHz", file: "SINE-10MHz-300mV-0V0.png" },
+                    { label: "20MHz", file: "SINE-20MHz-300mV-0V0.png" },
+                    { label: "40MHz", file: "SINE-40MHz-300mV-0V0.png" },
+                    { label: "80MHz", file: "SINE-80MHz-300mV-0V0.png" },
+                    { label: "160MHz", file: "SINE-160MHz-300mV-0V0.png" },
+                    { label: "1GHz", file: "SINE-1GHz-300mV-0V0.png" }
                 ],
                 "1V5_gain_voltage": [
-                    "SINE-10MHz-300mV-1V5.png",
-                    "SINE-20MHz-300mV-1V5.png",
-                    "SINE-40MHz-300mV-1V5.png",
-                    "SINE-80MHz-300mV-1V5.png",
-                    "SINE-160MHz-300mV-1V5.png",
-                    "SINE-1GHz-300mV-1V5.png"
+                    { label: "10MHz", file: "SINE-10MHz-300mV-1V5.png" },
+                    { label: "20MHz", file: "SINE-20MHz-300mV-1V5.png" },
+                    { label: "40MHz", file: "SINE-40MHz-300mV-1V5.png" },
+                    { label: "80MHz", file: "SINE-80MHz-300mV-1V5.png" },
+                    { label: "160MHz", file: "SINE-160MHz-300mV-1V5.png" },
+                    { label: "1GHz", file: "SINE-1GHz-300mV-1V5.png" }
                 ]
             },
             input_voltage_sweep: {
                 "_": [
-                    "SINE-40MHz-150mV-1V5.png",
-                    "SINE-40MHz-300mV-1V5.png",
-                    "SINE-40MHz-600mV-1V5.png",
-                    "SINE-40MHz-900mV-1V5.png"
+                    { label: "150mV", file: "SINE-40MHz-150mV-1V5.png" },
+                    { label: "300mV", file: "SINE-40MHz-300mV-1V5.png" },
+                    { label: "600mV", file: "SINE-40MHz-600mV-1V5.png" },
+                    { label: "900mV", file: "SINE-40MHz-900mV-1V5.png" }
                 ]
             }
         };
@@ -176,8 +187,9 @@
         const gainSelect = document.getElementById('gain');
         const gainGroup = document.getElementById('gain-group');
         const fileSelect = document.getElementById('file');
+        const fileLabel = document.getElementById('file-label');
         const preview = document.getElementById('preview');
-        const pathDisplay = document.getElementById('path');
+        const filenameDisplay = document.getElementById('filename');
 
         function updateFileList() {
             const category = categorySelect.value;
@@ -187,8 +199,8 @@
             fileSelect.innerHTML = '';
             fileList.forEach(f => {
                 const opt = document.createElement('option');
-                opt.value = f;
-                opt.textContent = f.replace('.png', '');
+                opt.value = f.file;
+                opt.textContent = f.label;
                 fileSelect.appendChild(opt);
             });
 
@@ -208,11 +220,13 @@
             }
 
             preview.src = path;
-            pathDisplay.textContent = path;
+            filenameDisplay.textContent = file;
         }
 
         function updateGainVisibility() {
-            gainGroup.style.display = categorySelect.value === 'frequency_sweep' ? 'flex' : 'none';
+            const isFrequency = categorySelect.value === 'frequency_sweep';
+            gainGroup.style.display = isFrequency ? 'flex' : 'none';
+            fileLabel.textContent = isFrequency ? 'Frequency' : 'Input Voltage';
             updateFileList();
         }
 
@@ -220,7 +234,6 @@
         gainSelect.addEventListener('change', updateFileList);
         fileSelect.addEventListener('change', updateImage);
 
-        // Initialize
         updateGainVisibility();
     </script>
 </body>
