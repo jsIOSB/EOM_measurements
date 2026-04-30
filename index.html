@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Viewer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #00d4ff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .controls {
+            background: #16213e;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .control-group label {
+            font-weight: bold;
+            color: #00d4ff;
+            font-size: 14px;
+        }
+
+        select {
+            background: #0f3460;
+            color: #fff;
+            border: 2px solid #00d4ff;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            min-width: 200px;
+        }
+
+        select:hover {
+            background: #1a4a7a;
+        }
+
+        select:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.3);
+        }
+
+        .image-container {
+            background: #16213e;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-container img {
+            max-width: 100%;
+            max-height: 70vh;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .current-path {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: #0f3460;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 13px;
+            color: #aaa;
+            word-break: break-all;
+        }
+
+        .placeholder {
+            color: #666;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Measurement Image Viewer</h1>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="category">Category</label>
+                <select id="category">
+                    <option value="frequency_sweep">Frequency Sweep</option>
+                    <option value="input_voltage_sweep">Input Voltage Sweep</option>
+                </select>
+            </div>
+
+            <div class="control-group" id="gain-group">
+                <label for="gain">Gain Voltage</label>
+                <select id="gain">
+                    <option value="0V0_gain_voltage">0V0</option>
+                    <option value="1V5_gain_voltage">1V5</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="file">File</label>
+                <select id="file"></select>
+            </div>
+        </div>
+
+        <div class="image-container">
+            <img id="preview" src="" alt="Selected image">
+            <div class="current-path" id="path"></div>
+        </div>
+    </div>
+
+    <script>
+        const files = {
+            frequency_sweep: {
+                "0V0_gain_voltage": [
+                    "SINE-10MHz-300mV-0V0.png",
+                    "SINE-20MHz-300mV-0V0.png",
+                    "SINE-40MHz-300mV-0V0.png",
+                    "SINE-80MHz-300mV-0V0.png",
+                    "SINE-160MHz-300mV-0V0.png",
+                    "SINE-1GHz-300mV-0V0.png"
+                ],
+                "1V5_gain_voltage": [
+                    "SINE-10MHz-300mV-1V5.png",
+                    "SINE-20MHz-300mV-1V5.png",
+                    "SINE-40MHz-300mV-1V5.png",
+                    "SINE-80MHz-300mV-1V5.png",
+                    "SINE-160MHz-300mV-1V5.png",
+                    "SINE-1GHz-300mV-1V5.png"
+                ]
+            },
+            input_voltage_sweep: {
+                "_": [
+                    "SINE-40MHz-150mV-1V5.png",
+                    "SINE-40MHz-300mV-1V5.png",
+                    "SINE-40MHz-600mV-1V5.png",
+                    "SINE-40MHz-900mV-1V5.png"
+                ]
+            }
+        };
+
+        const categorySelect = document.getElementById('category');
+        const gainSelect = document.getElementById('gain');
+        const gainGroup = document.getElementById('gain-group');
+        const fileSelect = document.getElementById('file');
+        const preview = document.getElementById('preview');
+        const pathDisplay = document.getElementById('path');
+
+        function updateFileList() {
+            const category = categorySelect.value;
+            const gain = category === 'frequency_sweep' ? gainSelect.value : '_';
+            const fileList = files[category][gain];
+
+            fileSelect.innerHTML = '';
+            fileList.forEach(f => {
+                const opt = document.createElement('option');
+                opt.value = f;
+                opt.textContent = f.replace('.png', '');
+                fileSelect.appendChild(opt);
+            });
+
+            updateImage();
+        }
+
+        function updateImage() {
+            const category = categorySelect.value;
+            const gain = category === 'frequency_sweep' ? gainSelect.value : '';
+            const file = fileSelect.value;
+
+            let path;
+            if (category === 'frequency_sweep') {
+                path = `frequency_sweep/${gain}/${file}`;
+            } else {
+                path = `input_voltage_sweep/${file}`;
+            }
+
+            preview.src = path;
+            pathDisplay.textContent = path;
+        }
+
+        function updateGainVisibility() {
+            gainGroup.style.display = categorySelect.value === 'frequency_sweep' ? 'flex' : 'none';
+            updateFileList();
+        }
+
+        categorySelect.addEventListener('change', updateGainVisibility);
+        gainSelect.addEventListener('change', updateFileList);
+        fileSelect.addEventListener('change', updateImage);
+
+        // Initialize
+        updateGainVisibility();
+    </script>
+</body>
+</html>
